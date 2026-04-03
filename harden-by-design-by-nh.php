@@ -3,7 +3,7 @@
  * Plugin Name:       Harden by Design by NH
  * Plugin URI:        https://designbynh.com
  * Description:       Security hardening for WordPress: optional public URL blocking, reCAPTCHA on login, and reduced version/branding exposure.
- * Version:           1.3.4
+ * Version:           1.3.5
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Design by NH
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'HARDEN_BY_NH_VERSION', '1.3.4' );
+define( 'HARDEN_BY_NH_VERSION', '1.3.5' );
 define( 'HARDEN_BY_NH_PATH', plugin_dir_path( __FILE__ ) );
 define( 'HARDEN_BY_NH_URL', plugin_dir_url( __FILE__ ) );
 

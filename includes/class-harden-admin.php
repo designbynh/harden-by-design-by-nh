@@ -101,6 +101,7 @@ final class Harden_Admin {
 			$existing['hide_wp_version']               = ! empty( $input['hide_wp_version'] );
 			$existing['hide_wp_branding']              = ! empty( $input['hide_wp_branding'] );
 			$existing['disallow_file_edit']               = ! empty( $input['disallow_file_edit'] );
+			$existing['disable_wp_login_page']            = ! empty( $input['disable_wp_login_page'] );
 			$existing['disable_appearance_site_editor'] = ! empty( $input['disable_appearance_site_editor'] );
 			$existing['disable_comments']              = ! empty( $input['disable_comments'] );
 			$existing['disable_application_passwords'] = ! empty( $input['disable_application_passwords'] );
@@ -752,6 +753,21 @@ final class Harden_Admin {
 					);
 					?>
 					<p class="description"><?php esc_html_e( 'For block themes, this hides the full-site block editor (not the classic theme file editor—use Theme & plugin file editor for that). Direct URLs to the screen redirect to the dashboard.', 'harden-by-design-by-nh' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Login page (wp-login.php)', 'harden-by-design-by-nh' ); ?></th>
+				<td>
+					<?php
+					self::render_switch(
+						'disable_wp_login_page',
+						__( 'Disable the public login page (403 for guests)', 'harden-by-design-by-nh' ),
+						! empty( $opts['disable_wp_login_page'] )
+					);
+					?>
+					<p class="description">
+						<?php esc_html_e( 'Guests cannot use the normal username/password screen. Logout links and password-protected post forms (postpass) still work. Password reset and registration URLs on wp-login.php are blocked—use your host’s admin login (e.g. one-click) or disable this option if you get locked out. Developers can allow specific requests with the harden_by_nh_allow_wp_login_request or harden_by_nh_disabled_login_allowed_actions filters.', 'harden-by-design-by-nh' ); ?>
+					</p>
 				</td>
 			</tr>
 			<tr>

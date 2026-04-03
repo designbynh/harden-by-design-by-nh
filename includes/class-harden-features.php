@@ -26,6 +26,7 @@ final class Harden_Features {
 		add_action( 'admin_menu', array( self::class, 'maybe_remove_site_editor_menu' ), 999 );
 		add_action( 'admin_init', array( self::class, 'maybe_block_site_editor_screen' ) );
 		add_action( 'admin_bar_menu', array( self::class, 'maybe_remove_site_editor_admin_bar' ), 999 );
+		add_action( 'login_init', array( self::class, 'maybe_block_wp_login' ), 1 );
 		add_action( 'login_init', array( self::class, 'maybe_hide_login_branding' ) );
 		add_action( 'login_init', array( self::class, 'maybe_hide_login_version' ) );
 
@@ -429,6 +430,58 @@ final class Harden_Features {
 		add_action( 'admin_bar_menu', array( self::class, 'remove_wp_admin_bar_logo' ), 999 );
 		add_filter( 'admin_footer_text', '__return_empty_string', 20 );
 		add_filter( 'update_footer', '__return_empty_string', 20 );
+	}
+
+	/**
+	 * Block the public login screen on wp-login.php when enabled (Advanced).
+	 *
+	 * Logged-in users are not blocked (core may redirect). `logout` and `postpass`
+	 * stay allowed. Host or SSO login flows can use `harden_by_nh_allow_wp_login_request`.
+	 * Additional `action` values: `harden_by_nh_disabled_login_allowed_actions`.
+	 */
+	public static function maybe_block_wp_login(): void {
+		if ( empty( self::opts()['disable_wp_login_page'] ) ) {
+			return;
+		}
+
+		if ( is_user_logged_in() ) {
+			return;
+		}
+
+		if ( (bool) apply_filters( 'harden_by_nh_allow_wp_login_request', false ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Route only; guests have no nonce.
+		$action = isset( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( (string) $_REQUEST['action'] ) ) : 'login';
+		if ( '' === $action ) {
+			$action = 'login';
+		}
+
+		$allowed_actions = apply_filters(
+			'harden_by_nh_disabled_login_allowed_actions',
+			array( 'logout', 'postpass' )
+		);
+		if ( ! is_array( $allowed_actions ) ) {
+			$allowed_actions = array( 'logout', 'postpass' );
+		}
+		$allowed_actions = array_map(
+			static function ( $a ): string {
+				return sanitize_key( is_string( $a ) ? $a : (string) $a );
+			},
+			$allowed_actions
+		);
+
+		if ( in_array( $action, $allowed_actions, true ) ) {
+			return;
+		}
+
+		status_header( 403 );
+		wp_die(
+			esc_html__( 'The login page is disabled on this site.', 'harden-by-design-by-nh' ),
+			esc_html__( 'Forbidden', 'harden-by-design-by-nh' ),
+			array( 'response' => 403 )
+		);
 	}
 
 	public static function maybe_hide_login_branding(): void {

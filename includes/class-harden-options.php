@@ -36,6 +36,7 @@ final class Harden_Options {
 			'hide_wp_version'             => false,
 			'hide_wp_branding'            => false,
 			'disallow_file_edit'          => false,
+			'disable_wp_login_page'       => false,
 			'disable_appearance_site_editor' => false,
 			'disable_comments'            => false,
 			'disable_application_passwords' => false,
@@ -133,6 +134,7 @@ final class Harden_Options {
 			'hide_wp_version',
 			'hide_wp_branding',
 			'disallow_file_edit',
+			'disable_wp_login_page',
 			'disable_appearance_site_editor',
 			'disable_comments',
 			'disable_application_passwords',
@@ -307,6 +309,7 @@ final class Harden_Options {
 				case 'hide_wp_version':
 				case 'hide_wp_branding':
 				case 'disallow_file_edit':
+				case 'disable_wp_login_page':
 				case 'disable_appearance_site_editor':
 				case 'disable_comments':
 				case 'disable_application_passwords':
