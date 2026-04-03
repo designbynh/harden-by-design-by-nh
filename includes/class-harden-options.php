@@ -59,6 +59,16 @@ final class Harden_Options {
 			'recaptcha_version'           => 'v3',
 			'recaptcha_site_key'          => '',
 			'recaptcha_secret_key'        => '',
+			'hide_notice_wp_core_nag'     => false,
+			'hide_notice_updates_admin_bar' => false,
+			'hide_notice_plugins_menu_count' => false,
+			'hide_notice_themes_menu_count' => false,
+			'hide_notice_dashboard_updates_submenu' => false,
+			'hide_notice_core_update_emails' => false,
+			'hide_notice_core_auto_update_result_emails' => false,
+			'hide_notice_plugin_auto_update_emails' => false,
+			'hide_notice_theme_auto_update_emails' => false,
+			'hide_notice_auto_updates_debug_emails' => false,
 		);
 	}
 
@@ -153,6 +163,36 @@ final class Harden_Options {
 			'remove_comment_urls',
 			'remove_global_styles',
 			'recaptcha_enabled',
+			'hide_notice_wp_core_nag',
+			'hide_notice_updates_admin_bar',
+			'hide_notice_plugins_menu_count',
+			'hide_notice_themes_menu_count',
+			'hide_notice_dashboard_updates_submenu',
+			'hide_notice_core_update_emails',
+			'hide_notice_core_auto_update_result_emails',
+			'hide_notice_plugin_auto_update_emails',
+			'hide_notice_theme_auto_update_emails',
+			'hide_notice_auto_updates_debug_emails',
+		);
+	}
+
+	/**
+	 * Toggles on the Notifications tab (admin update UI).
+	 *
+	 * @return list<string>
+	 */
+	public static function notification_toggle_keys(): array {
+		return array(
+			'hide_notice_wp_core_nag',
+			'hide_notice_updates_admin_bar',
+			'hide_notice_plugins_menu_count',
+			'hide_notice_themes_menu_count',
+			'hide_notice_dashboard_updates_submenu',
+			'hide_notice_core_update_emails',
+			'hide_notice_core_auto_update_result_emails',
+			'hide_notice_plugin_auto_update_emails',
+			'hide_notice_theme_auto_update_emails',
+			'hide_notice_auto_updates_debug_emails',
 		);
 	}
 
@@ -328,6 +368,16 @@ final class Harden_Options {
 				case 'remove_comment_urls':
 				case 'remove_global_styles':
 				case 'recaptcha_enabled':
+				case 'hide_notice_wp_core_nag':
+				case 'hide_notice_updates_admin_bar':
+				case 'hide_notice_plugins_menu_count':
+				case 'hide_notice_themes_menu_count':
+				case 'hide_notice_dashboard_updates_submenu':
+				case 'hide_notice_core_update_emails':
+				case 'hide_notice_core_auto_update_result_emails':
+				case 'hide_notice_plugin_auto_update_emails':
+				case 'hide_notice_theme_auto_update_emails':
+				case 'hide_notice_auto_updates_debug_emails':
 					$out[ $key ] = self::to_bool( $v );
 					break;
 				case 'rest_api_policy':

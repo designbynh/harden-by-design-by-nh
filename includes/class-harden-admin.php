@@ -118,6 +118,13 @@ final class Harden_Admin {
 			return Harden_Options::prepare_storage( $existing );
 		}
 
+		if ( 'notifications' === $tab ) {
+			foreach ( Harden_Options::notification_toggle_keys() as $key ) {
+				$existing[ $key ] = ! empty( $input[ $key ] );
+			}
+			return Harden_Options::prepare_storage( $existing );
+		}
+
 		/*
 		 * update_option() always runs sanitize_option_{$option}. AJAX and direct saves
 		 * do not send harden_tab; merge the incoming value over the stored option.
@@ -169,7 +176,7 @@ final class Harden_Admin {
 		}
 
 		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( (string) $_GET['tab'] ) ) : 'advanced'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! in_array( $tab, array( 'recaptcha', 'advanced', 'pages', 'frontend' ), true ) ) {
+		if ( ! in_array( $tab, array( 'recaptcha', 'advanced', 'pages', 'frontend', 'notifications' ), true ) ) {
 			$tab = 'advanced';
 		}
 
@@ -201,6 +208,9 @@ final class Harden_Admin {
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'frontend', $base_url ) ); ?>" class="nav-tab <?php echo $tab === 'frontend' ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Frontend', 'harden-by-design-by-nh' ); ?>
 				</a>
+				<a href="<?php echo esc_url( add_query_arg( 'tab', 'notifications', $base_url ) ); ?>" class="nav-tab <?php echo $tab === 'notifications' ? 'nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Notifications', 'harden-by-design-by-nh' ); ?>
+				</a>
 			</h2>
 
 			<?php
@@ -210,6 +220,8 @@ final class Harden_Admin {
 				self::render_pages_fields( $opts );
 			} elseif ( 'advanced' === $tab ) {
 				self::render_advanced_fields( $opts );
+			} elseif ( 'notifications' === $tab ) {
+				self::render_notifications_fields( $opts );
 			} else {
 				self::render_frontend_fields( $opts );
 			}
@@ -330,7 +342,7 @@ final class Harden_Admin {
 		check_admin_referer( 'harden_by_nh_import_settings' );
 
 		$tab = isset( $_POST['harden_redirect_tab'] ) ? sanitize_key( wp_unslash( (string) $_POST['harden_redirect_tab'] ) ) : 'advanced';
-		if ( ! in_array( $tab, array( 'recaptcha', 'advanced', 'pages', 'frontend' ), true ) ) {
+		if ( ! in_array( $tab, array( 'recaptcha', 'advanced', 'pages', 'frontend', 'notifications' ), true ) ) {
 			$tab = 'advanced';
 		}
 		$redirect = add_query_arg(
@@ -914,6 +926,112 @@ final class Harden_Admin {
 		</p>
 		<table class="form-table" role="presentation">
 			<?php foreach ( $rows as $row ) : ?>
+				<tr>
+					<th scope="row"><?php echo esc_html( $row[1] ); ?></th>
+					<td>
+						<?php
+						self::render_switch(
+							$row[0],
+							$row[1],
+							! empty( $opts[ $row[0] ] )
+						);
+						?>
+						<p class="description"><?php echo esc_html( $row[2] ); ?></p>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+		</table>
+		<?php
+	}
+
+	/**
+	 * Notifications tab: reduce WordPress update reminders in the admin.
+	 *
+	 * @param array<string, mixed> $opts Options.
+	 */
+	private static function render_notifications_fields( array $opts ): void {
+		$admin_rows = array(
+			array(
+				'hide_notice_wp_core_nag',
+				__( 'WordPress core upgrade banner', 'harden-by-design-by-nh' ),
+				__( 'Hides the yellow “new version of WordPress” notice for everyone except site Administrators (manage_options). In the network admin dashboard, only super admins still see it. Does not block updates.', 'harden-by-design-by-nh' ),
+			),
+			array(
+				'hide_notice_updates_admin_bar',
+				__( 'Admin bar “Updates” menu', 'harden-by-design-by-nh' ),
+				__( 'Hides the Updates toolbar item for the same non-administrator users (front end and admin when the bar shows). Administrators still see it. Dashboard → Updates still works.', 'harden-by-design-by-nh' ),
+			),
+			array(
+				'hide_notice_plugins_menu_count',
+				__( 'Plugins menu update count', 'harden-by-design-by-nh' ),
+				__( 'Removes the numbered Plugins sidebar bubble for non-administrators; Administrators still see counts.', 'harden-by-design-by-nh' ),
+			),
+			array(
+				'hide_notice_themes_menu_count',
+				__( 'Themes / Appearance update count', 'harden-by-design-by-nh' ),
+				__( 'Removes Appearance / Themes update badges for non-administrators; Administrators still see them.', 'harden-by-design-by-nh' ),
+			),
+			array(
+				'hide_notice_dashboard_updates_submenu',
+				__( 'Dashboard → Updates count', 'harden-by-design-by-nh' ),
+				__( 'Removes the Updates submenu count for non-administrators under Dashboard (and the network dashboard equivalent). Administrators still see it.', 'harden-by-design-by-nh' ),
+			),
+		);
+		$email_rows = array(
+			array(
+				'hide_notice_core_update_emails',
+				__( 'Core background update: first admin email', 'harden-by-design-by-nh' ),
+				__( 'Disables the email WordPress sends after some automatic core background updates (filter: send_core_update_notification_email). Separate from success/failure/critical messages below.', 'harden-by-design-by-nh' ),
+			),
+			array(
+				'hide_notice_core_auto_update_result_emails',
+				__( 'Core automatic update: success / failure / critical emails', 'harden-by-design-by-nh' ),
+				__( 'Disables “your site updated”, “update available”, and “site may be down” emails from automatic core updates (filter: auto_core_update_send_email).', 'harden-by-design-by-nh' ),
+			),
+			array(
+				'hide_notice_plugin_auto_update_emails',
+				__( 'Plugin automatic update emails', 'harden-by-design-by-nh' ),
+				__( 'Disables emails after automatic plugin background updates (filter: auto_plugin_update_send_email).', 'harden-by-design-by-nh' ),
+			),
+			array(
+				'hide_notice_theme_auto_update_emails',
+				__( 'Theme automatic update emails', 'harden-by-design-by-nh' ),
+				__( 'Disables emails after automatic theme background updates (filter: auto_theme_update_send_email).', 'harden-by-design-by-nh' ),
+			),
+			array(
+				'hide_notice_auto_updates_debug_emails',
+				__( 'Automatic updates debug email', 'harden-by-design-by-nh' ),
+				__( 'Disables the extra debug email WordPress can send for development-style installs after background updates (filter: automatic_updates_send_debug_email).', 'harden-by-design-by-nh' ),
+			),
+		);
+		?>
+		<p class="description" style="margin-bottom:1em;">
+			<?php esc_html_e( 'Admin notices and menu badges: only non-administrators are affected; site Administrators always keep full update UI. Custom roles can be adjusted with the harden_by_nh_user_keeps_update_ui filter.', 'harden-by-design-by-nh' ); ?>
+		</p>
+		<table class="form-table" role="presentation">
+			<?php foreach ( $admin_rows as $row ) : ?>
+				<tr>
+					<th scope="row"><?php echo esc_html( $row[1] ); ?></th>
+					<td>
+						<?php
+						self::render_switch(
+							$row[0],
+							$row[1],
+							! empty( $opts[ $row[0] ] )
+						);
+						?>
+						<p class="description"><?php echo esc_html( $row[2] ); ?></p>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+		</table>
+
+		<h3 style="margin-top:1.5em;"><?php esc_html_e( 'Email (automatic background updates)', 'harden-by-design-by-nh' ); ?></h3>
+		<p class="description" style="margin-bottom:1em;">
+			<?php esc_html_e( 'These apply site-wide when enabled—they are not per-user. Other WordPress emails (comments, password reset, privacy tools, etc.) are unchanged.', 'harden-by-design-by-nh' ); ?>
+		</p>
+		<table class="form-table" role="presentation">
+			<?php foreach ( $email_rows as $row ) : ?>
 				<tr>
 					<th scope="row"><?php echo esc_html( $row[1] ); ?></th>
 					<td>

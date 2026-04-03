@@ -45,6 +45,8 @@ final class Harden_Features {
 		add_action( 'init', array( self::class, 'maybe_disable_xmlrpc' ), 1 );
 		add_action( 'init', array( self::class, 'maybe_register_rest_policy' ), 1 );
 
+		add_action( 'init', array( self::class, 'maybe_suppress_update_notifications' ), 9 );
+
 		add_action( 'login_enqueue_scripts', array( self::class, 'login_recaptcha_assets' ) );
 		add_action( 'login_form', array( self::class, 'login_recaptcha_field' ) );
 		add_filter( 'authenticate', array( self::class, 'login_recaptcha_verify' ), 20, 3 );
@@ -430,6 +432,176 @@ final class Harden_Features {
 		add_action( 'admin_bar_menu', array( self::class, 'remove_wp_admin_bar_logo' ), 999 );
 		add_filter( 'admin_footer_text', '__return_empty_string', 20 );
 		add_filter( 'update_footer', '__return_empty_string', 20 );
+	}
+
+	/**
+	 * Optionally hide WordPress update reminders in the admin (Notifications tab).
+	 */
+	public static function maybe_suppress_update_notifications(): void {
+		$o = self::opts();
+		if ( empty( $o['hide_notice_wp_core_nag'] )
+			&& empty( $o['hide_notice_updates_admin_bar'] )
+			&& empty( $o['hide_notice_core_update_emails'] )
+			&& empty( $o['hide_notice_core_auto_update_result_emails'] )
+			&& empty( $o['hide_notice_plugin_auto_update_emails'] )
+			&& empty( $o['hide_notice_theme_auto_update_emails'] )
+			&& empty( $o['hide_notice_auto_updates_debug_emails'] )
+			&& empty( $o['hide_notice_plugins_menu_count'] )
+			&& empty( $o['hide_notice_themes_menu_count'] )
+			&& empty( $o['hide_notice_dashboard_updates_submenu'] ) ) {
+			return;
+		}
+
+		if ( ! empty( $o['hide_notice_wp_core_nag'] ) ) {
+			add_action( 'admin_init', array( self::class, 'replace_wp_core_update_nag_for_non_admins' ), 1 );
+		}
+		if ( ! empty( $o['hide_notice_updates_admin_bar'] ) ) {
+			add_action( 'admin_bar_menu', array( self::class, 'maybe_remove_updates_admin_bar_for_non_privileged' ), 999 );
+		}
+		if ( ! empty( $o['hide_notice_core_update_emails'] ) ) {
+			add_filter( 'send_core_update_notification_email', '__return_false' );
+		}
+		if ( ! empty( $o['hide_notice_core_auto_update_result_emails'] ) ) {
+			add_filter( 'auto_core_update_send_email', '__return_false' );
+		}
+		if ( ! empty( $o['hide_notice_plugin_auto_update_emails'] ) ) {
+			add_filter( 'auto_plugin_update_send_email', '__return_false' );
+		}
+		if ( ! empty( $o['hide_notice_theme_auto_update_emails'] ) ) {
+			add_filter( 'auto_theme_update_send_email', '__return_false' );
+		}
+		if ( ! empty( $o['hide_notice_auto_updates_debug_emails'] ) ) {
+			add_filter( 'automatic_updates_send_debug_email', '__return_false' );
+		}
+		if ( ! empty( $o['hide_notice_plugins_menu_count'] )
+			|| ! empty( $o['hide_notice_themes_menu_count'] )
+			|| ! empty( $o['hide_notice_dashboard_updates_submenu'] ) ) {
+			add_action( 'admin_menu', array( self::class, 'strip_admin_menu_update_badges' ), 9999 );
+		}
+	}
+
+	/**
+	 * Site/network administrators still see the core update banner; other roles do not when the option is on.
+	 */
+	public static function replace_wp_core_update_nag_for_non_admins(): void {
+		remove_action( 'admin_notices', 'update_nag', 3 );
+		remove_action( 'network_admin_notices', 'update_nag', 3 );
+		add_action( 'admin_notices', array( self::class, 'maybe_output_core_update_nag_for_privileged' ), 3 );
+		add_action( 'network_admin_notices', array( self::class, 'maybe_output_core_update_nag_for_privileged' ), 3 );
+	}
+
+	/**
+	 * Runs where core update_nag did; only outputs for privileged users.
+	 */
+	public static function maybe_output_core_update_nag_for_privileged(): void {
+		if ( self::user_keeps_update_ui() ) {
+			update_nag();
+		}
+	}
+
+	/**
+	 * Remove toolbar Updates for users who are not site Administrators (or not super admins in network admin).
+	 *
+	 * @param \WP_Admin_Bar $wp_admin_bar Admin bar instance.
+	 */
+	public static function maybe_remove_updates_admin_bar_for_non_privileged( $wp_admin_bar ): void {
+		if ( empty( self::opts()['hide_notice_updates_admin_bar'] ) || ! is_object( $wp_admin_bar ) || ! method_exists( $wp_admin_bar, 'remove_node' ) ) {
+			return;
+		}
+		if ( self::user_keeps_update_ui() ) {
+			return;
+		}
+		$wp_admin_bar->remove_node( 'updates' );
+	}
+
+	/**
+	 * Whether the current user should still see update UI when suppression options are enabled.
+	 * Default: single-site Administrators (manage_options); network dashboard: super admins only.
+	 */
+	private static function user_keeps_update_ui(): bool {
+		if ( ! is_user_logged_in() ) {
+			return false;
+		}
+		if ( is_multisite() && is_network_admin() ) {
+			$keep = is_super_admin();
+		} else {
+			$keep = current_user_can( 'manage_options' );
+		}
+
+		/**
+		 * Whether the current user still sees update banners, admin bar Updates, and menu counts when those options are on.
+		 *
+		 * @param bool $keep Default from manage_options / super admin checks.
+		 */
+		return (bool) apply_filters( 'harden_by_nh_user_keeps_update_ui', $keep );
+	}
+
+	/**
+	 * Strip update count bubbles from admin menu labels (matches default core markup).
+	 */
+	public static function strip_admin_menu_update_badges(): void {
+		if ( ! is_admin() ) {
+			return;
+		}
+		if ( self::user_keeps_update_ui() ) {
+			return;
+		}
+
+		$o = self::opts();
+		global $menu, $submenu;
+		if ( ! is_array( $menu ) || ! is_array( $submenu ) ) {
+			return;
+		}
+
+		if ( ! empty( $o['hide_notice_plugins_menu_count'] ) ) {
+			foreach ( $menu as $idx => $item ) {
+				if ( ! is_array( $item ) || ! isset( $item[2], $item[0] ) || 'plugins.php' !== $item[2] ) {
+					continue;
+				}
+				$menu[ $idx ][0] = self::strip_update_badge_from_menu_title( (string) $item[0] );
+			}
+		}
+
+		if ( ! empty( $o['hide_notice_themes_menu_count'] ) ) {
+			foreach ( $menu as $idx => $item ) {
+				if ( ! is_array( $item ) || ! isset( $item[2], $item[0] ) || 'themes.php' !== $item[2] ) {
+					continue;
+				}
+				$menu[ $idx ][0] = self::strip_update_badge_from_menu_title( (string) $item[0] );
+			}
+			if ( isset( $submenu['themes.php'] ) && is_array( $submenu['themes.php'] ) ) {
+				foreach ( $submenu['themes.php'] as $idx => $item ) {
+					if ( ! is_array( $item ) || ! isset( $item[0] ) ) {
+						continue;
+					}
+					$submenu['themes.php'][ $idx ][0] = self::strip_update_badge_from_menu_title( (string) $item[0] );
+				}
+			}
+		}
+
+		if ( ! empty( $o['hide_notice_dashboard_updates_submenu'] ) && isset( $submenu['index.php'] ) && is_array( $submenu['index.php'] ) ) {
+			foreach ( $submenu['index.php'] as $idx => $item ) {
+				if ( ! is_array( $item ) || ! isset( $item[2], $item[0] ) || 'update-core.php' !== $item[2] ) {
+					continue;
+				}
+				$submenu['index.php'][ $idx ][0] = self::strip_update_badge_from_menu_title( (string) $item[0] );
+			}
+		}
+	}
+
+	/**
+	 * @param string $title Menu or submenu title HTML.
+	 */
+	private static function strip_update_badge_from_menu_title( string $title ): string {
+		$out = preg_replace(
+			'/<span class="update-plugins count-\d+"><span class="(?:update-count|plugin-count|theme-count)">[^<]*<\/span><\/span>/',
+			'',
+			$title
+		);
+		if ( ! is_string( $out ) ) {
+			return trim( $title );
+		}
+		return trim( preg_replace( '/\s{2,}/u', ' ', $out ) );
 	}
 
 	/**
