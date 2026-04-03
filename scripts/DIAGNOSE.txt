@@ -1,0 +1,24 @@
+Harden plugin — local database / option diagnostics
+===================================================
+
+1) WordPress bootstrap (recommended; uses DB credentials from wp-config.php)
+
+   php scripts/diagnose-harden-option.php
+
+   Run with the plugin directory as cwd, or pass the full path to the script.
+   Prints get_option( 'harden_by_nh_options' ) plus the raw wp_options row.
+
+   Requires MySQL to be running (MAMP, Laravel Valet, Docker, etc.). If you see
+   HTML mentioning "Error establishing a database connection", start MySQL and
+   try again.
+
+2) Optional: raw MySQL (only if mysql client is installed; e.g. MAMP, Homebrew)
+
+   Copy local-db.env.example to local-db.env (gitignored), fill values, then:
+
+   bash scripts/mysql-option-row.sh
+
+3) For Cursor / agents
+
+   When asked to verify saved settings against the database, run (1) from this
+   plugin folder. No separate DB password file is required.

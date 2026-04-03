@@ -1,0 +1,20 @@
+---
+description: Diagnose Harden plugin options against the local WordPress database
+globs:
+alwaysApply: false
+---
+
+When the user asks to verify or diagnose **Harden by Design by NH** settings in the database (local install):
+
+1. Ensure MySQL for this site is running (MAMP, Docker, etc.).
+2. From the plugin directory `wp-content/plugins/designbynh`, run:
+
+   `php scripts/diagnose-harden-option.php`
+
+3. Interpret output: `get_option( 'harden_by_nh_options' )` and the serialized `wp_options` row. Option name is `harden_by_nh_options`.
+
+4. If the command prints HTML about database connection errors, the DB server is not reachable from CLI—start MySQL and retry.
+
+5. Optional raw SQL without loading WordPress: copy `local-db.env.example` to `local-db.env` (gitignored), then `bash scripts/mysql-option-row.sh` if `mysql` is in PATH.
+
+Do not commit `local-db.env` or paste real DB passwords into chat.
