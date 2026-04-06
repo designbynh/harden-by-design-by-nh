@@ -1,0 +1,287 @@
+/**
+ * Settings screen: toggle switches (WP admin palette).
+ */
+
+/* Page title row: product name, attribution, version. */
+.harden-by-nh-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 0.75rem 1.5rem;
+	margin: 0 0 0.5rem;
+	padding-bottom: 0.25rem;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.harden-by-nh-header__titles {
+	flex: 1 1 auto;
+	min-width: min(100%, 10rem);
+}
+
+.harden-by-nh-header__title {
+	margin: 0;
+	padding: 0;
+	font-size: 23px;
+	font-weight: 400;
+	line-height: 1.25;
+}
+
+.harden-by-nh-header__subtitle {
+	margin: 0.2em 0 0;
+	padding: 0;
+	font-size: 13px;
+	color: #646970;
+	line-height: 1.4;
+}
+
+.harden-by-nh-header__meta {
+	flex: 0 0 auto;
+	margin-inline-start: auto;
+}
+
+.harden-by-nh-header__version {
+	display: inline-block;
+	font-size: 13px;
+	line-height: 1.4;
+	color: #646970;
+	white-space: nowrap;
+}
+
+/*
+ * Card grid: one column on small viewports, exactly two columns when wider.
+ */
+.harden-by-nh-stack {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1.25rem;
+	margin-top: 1rem;
+	align-items: start;
+}
+
+@media (min-width: 36rem) {
+	.harden-by-nh-stack {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.harden-by-nh-tab-lead {
+	margin: 0 0 0.25rem;
+}
+
+.harden-by-nh-stack > .harden-by-nh-tab-lead {
+	grid-column: 1 / -1;
+	margin-bottom: 0;
+}
+
+/* Panel chrome: postbox-like header + body; defers to core .card border/shadow where present. */
+.harden-by-nh-wrap .harden-by-nh-stack > .harden-by-nh-settings-card.card {
+	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+.harden-by-nh-settings-card__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 0.75rem 1.25rem;
+	padding: 12px 20px;
+	border-bottom: 1px solid #dcdcde;
+	background: #f6f7f7;
+}
+
+.harden-by-nh-settings-card__head-main {
+	flex: 1 1 12rem;
+	min-width: 0;
+}
+
+.harden-by-nh-settings-card__title {
+	margin: 0 0 0.35em;
+	padding: 0;
+	font-size: 1.15em;
+	line-height: 1.35;
+	font-weight: 600;
+}
+
+.harden-by-nh-settings-card__head-main .harden-by-nh-settings-card__title:last-child {
+	margin-bottom: 0;
+}
+
+.harden-by-nh-settings-card__intro {
+	margin: 0;
+	max-width: 62em;
+}
+
+.harden-by-nh-settings-card__bulk {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	flex: 0 0 auto;
+	margin-inline-start: auto;
+}
+
+.harden-by-nh-bulk-switch-row {
+	margin: 0;
+	vertical-align: middle;
+}
+
+.harden-by-nh-bulk-switch-row .harden-by-nh-switch {
+	gap: 0;
+}
+
+.harden-by-nh-bulk-master-input:disabled {
+	cursor: wait;
+}
+
+.harden-by-nh-bulk-master-input:disabled + .harden-by-nh-switch {
+	opacity: 0.65;
+	pointer-events: none;
+}
+
+.harden-by-nh-switch-input:indeterminate + .harden-by-nh-switch .harden-by-nh-switch-ui {
+	background: #8c8f94;
+}
+
+.harden-by-nh-switch-input:indeterminate + .harden-by-nh-switch .harden-by-nh-switch-ui::after {
+	transform: translateX(9px);
+}
+
+.harden-by-nh-settings-card__body {
+	padding: 4px 20px 16px;
+}
+
+.harden-by-nh-settings-card__body > .form-table:first-child {
+	margin-top: 8px;
+}
+
+.harden-by-nh-settings-card__body > p:first-child {
+	margin-top: 12px;
+}
+
+.harden-by-nh-status {
+	min-height: 1.5em;
+	margin: 0.5em 0 1em;
+	color: #646970;
+	font-size: 13px;
+}
+
+.harden-by-nh-status.harden-by-nh-status--error {
+	color: #d63638;
+	font-weight: 600;
+}
+
+.harden-by-nh-switch-row {
+	position: relative;
+	display: inline-block;
+}
+
+.harden-by-nh-switch-input {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 44px;
+	height: 24px;
+	margin: 0;
+	opacity: 0;
+	z-index: 2;
+	cursor: pointer;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.harden-by-nh-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+	user-select: none;
+	vertical-align: middle;
+}
+
+.harden-by-nh-switch-ui {
+	position: relative;
+	width: 40px;
+	height: 22px;
+	flex-shrink: 0;
+	background: #c3c4c7;
+	border-radius: 11px;
+	transition: background 0.2s ease;
+	box-sizing: border-box;
+}
+
+.harden-by-nh-switch-ui::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 18px;
+	height: 18px;
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+	transition: transform 0.2s ease;
+}
+
+.harden-by-nh-switch-input:focus + .harden-by-nh-switch .harden-by-nh-switch-ui {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.harden-by-nh-switch-input:checked + .harden-by-nh-switch .harden-by-nh-switch-ui {
+	background: #2271b1;
+}
+
+.harden-by-nh-switch-input:checked + .harden-by-nh-switch .harden-by-nh-switch-ui::after {
+	transform: translateX(18px);
+}
+
+.harden-by-nh-page-lists {
+	max-height: 22rem;
+	overflow: auto;
+	margin-top: 0.75em;
+	padding: 0.5em 0.75em;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fcfcfc;
+}
+
+/*
+ * Page-slug rows must stay flex so the absolute checkbox sits over the pill;
+ * display:block collapses layout and shows a second “ghost” native checkbox.
+ */
+.harden-by-nh-page-slug-row.harden-by-nh-switch-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	position: relative;
+	width: 100%;
+	min-height: 28px;
+	margin-bottom: 0.65em;
+}
+
+.harden-by-nh-page-slug-row.harden-by-nh-switch-row:last-child {
+	margin-bottom: 0;
+}
+
+.harden-by-nh-page-slug-row .harden-by-nh-switch-input {
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 3;
+	margin: 0;
+}
+
+.harden-by-nh-page-slug-row .harden-by-nh-switch-input:disabled {
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.harden-by-nh-switch-label {
+	line-height: 1.4;
+}
